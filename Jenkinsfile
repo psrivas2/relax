@@ -254,13 +254,13 @@ def python_unittest(image) {
 def fsim_test(image) {
   sh (
     script: "${docker_run} ${image} ./tests/scripts/task_python_vta_fsim.sh",
-    label: 'Run VTA tests in FSIM ',
+    label: 'Run VTA tests in FSIM',
   )
 }
 
 def cmake_build(image, path, make_flag) {
   sh (
-    script: "${docker_run} ${image} ./tests/scripts/task_build.sh ${path} ${make_flag}",
+    script: "${docker_run} ${image} ./tests/scripts/task_build.py --sccache-bucket tvm-sccache-prod",
     label: 'Run cmake build',
   )
 }
@@ -277,7 +277,7 @@ stage('Build and Test') {
     node('CPU') {
       ws(per_exec_ws('tvm/build-cpu')) {
         init_git()
-        sh "${docker_run} ${ci_cpu} ./tests/scripts/task_config_build_cpu.sh"
+        sh "${docker_run} ${ci_cpu} ./tests/scripts/task_config_build_cpu.sh build"
         make(ci_cpu, 'build', '-j2')
         sh "${docker_run} ${ci_cpu} ./tests/scripts/task_python_integration.sh"
       }
@@ -292,11 +292,11 @@ stage('Build and Test') {
 //       node('GPUBUILD') {
 //         ws(per_exec_ws('tvm/build-gpu')) {
 //           init_git()
-//           sh "${docker_run} ${ci_gpu} ./tests/scripts/task_config_build_gpu.sh"
+//           sh "${docker_run} ${ci_gpu} ./tests/scripts/task_config_build_gpu.sh build"
 //           make(ci_gpu, 'build', '-j2')
 //           pack_lib('gpu', tvm_multilib)
 //           // compiler test
-//           sh "${docker_run} ${ci_gpu} ./tests/scripts/task_config_build_gpu_other.sh"
+//           sh "${docker_run} ${ci_gpu} ./tests/scripts/task_config_build_gpu_other.sh build2"
 //           make(ci_gpu, 'build2', '-j2')
 //       }
 //     }
@@ -306,7 +306,7 @@ stage('Build and Test') {
 //       node('CPU') {
 //         ws(per_exec_ws('tvm/build-cpu')) {
 //           init_git()
-//           sh "${docker_run} ${ci_cpu} ./tests/scripts/task_config_build_cpu.sh"
+//           sh "${docker_run} ${ci_cpu} ./tests/scripts/task_config_build_cpu.sh build"
 //           make(ci_cpu, 'build', '-j2')
 //           pack_lib('cpu', tvm_multilib_tsim)
 //           timeout(time: max_time, unit: 'MINUTES') {
@@ -330,7 +330,7 @@ stage('Build and Test') {
 //       node('CPU') {
 //         ws(per_exec_ws('tvm/build-wasm')) {
 //           init_git()
-//           sh "${docker_run} ${ci_wasm} ./tests/scripts/task_config_build_wasm.sh"
+//           sh "${docker_run} ${ci_wasm} ./tests/scripts/task_config_build_wasm.sh build"
 //           make(ci_wasm, 'build', '-j2')
 //           timeout(time: max_time, unit: 'MINUTES') {
 //             sh "${docker_run} ${ci_wasm} ./tests/scripts/task_ci_setup.sh"
@@ -347,7 +347,7 @@ stage('Build and Test') {
 //       node('CPU') {
 //         ws(per_exec_ws('tvm/build-i386')) {
 //           init_git()
-//           sh "${docker_run} ${ci_i386} ./tests/scripts/task_config_build_i386.sh"
+//           sh "${docker_run} ${ci_i386} ./tests/scripts/task_config_build_i386.sh build"
 //           make(ci_i386, 'build', '-j2')
 //           pack_lib('i386', tvm_multilib_tsim)
 //         }
@@ -361,7 +361,7 @@ stage('Build and Test') {
 //       node('ARM') {
 //         ws(per_exec_ws('tvm/build-arm')) {
 //           init_git()
-//           sh "${docker_run} ${ci_arm} ./tests/scripts/task_config_build_arm.sh"
+//           sh "${docker_run} ${ci_arm} ./tests/scripts/task_config_build_arm.sh build"
 //           make(ci_arm, 'build', '-j4')
 //           pack_lib('arm', tvm_multilib)
 //         }
@@ -375,7 +375,7 @@ stage('Build and Test') {
 //       node('CPU') {
 //         ws(per_exec_ws('tvm/build-qemu')) {
 //           init_git()
-//           sh "${docker_run} ${ci_qemu} ./tests/scripts/task_config_build_qemu.sh"
+//           sh "${docker_run} ${ci_qemu} ./tests/scripts/task_config_build_qemu.sh build"
 //           make(ci_qemu, 'build', '-j2')
 //           timeout(time: max_time, unit: 'MINUTES') {
 //             sh "${docker_run} ${ci_qemu} ./tests/scripts/task_ci_setup.sh"

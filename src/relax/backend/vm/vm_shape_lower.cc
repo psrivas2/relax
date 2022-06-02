@@ -160,6 +160,11 @@ class VMShapeLowerMutator : public ExprMutator {
       if (e->IsInstance<tir::VarNode>()) {
         PrimExpr prim_e = Downcast<PrimExpr>(e);
         tir::BufferLoad load(buffer, {expr2slot_.at(prim_e)});
+        // All expr in shape are integer types but not necessarily the same as heap dtype.
+        // So we must cast the value loaded from buffer to the prim_e dtype if needed.
+        // PrimExpr load_cast = (load.dtype() == prim_e.dtype()) ? Downcast<PrimExpr>(load)
+        //                                                       : tir::Cast(prim_e.dtype(), load);
+        // ret.Set(Downcast<tir::Var>(e), load_cast);
         ret.Set(Downcast<tir::Var>(e), load);
       }
     };

@@ -20,6 +20,7 @@ import functools
 import inspect
 import types
 from typing import Callable, Dict, Union, Optional, List, Tuple
+from tvm.tir import PrimFunc, IndexMap
 import numpy as np  # type: ignore
 import tvm.ir
 from tvm.runtime import NDArray
@@ -523,6 +524,37 @@ def MetaScheduleTuneIRMod(
     ret: tvm.ir.transform.Pass
     """
     return _ffi_api.MetaScheduleTuneIRMod(params, work_dir, max_trials_global)  # type: ignore
+
+
+def AlterOpImpl(
+    op_impl_map: Dict[str, PrimFunc],
+    op_layout_change: Dict[str, List[Union[IndexMap, Callable]]],
+):
+    """Replace all PrimFunc's which have matching 'operator_name' attribute, with replacement
+    PrimFunc that could possibly have different layouts on i/o buffers. The layout
+    transformations on i/o buffers is present in the op_layout_change map. Inserts the layout
+    transformations in the call sites of PrimFuncs being replaced to transform i/o
+    tensors into expected layout by new PrimFunc.
+
+    Parameters
+    ----------
+    op_primfunc_map: Dict[str, PrimFunc]
+        op_kind to PrimFunc map
+    op_layout_map: Dict[str, List[Union[IndexMap, Callable]]
+        op_kind to layout transformation map for each of the buffers
+    Returns
+    -------
+    ret: tvm.ir.transform.Pass
+    """
+    for operator_kind, transform_list in op_layout_change.items():
+        l = []
+        for transform in transform_list:
+            if isinstance(transform, Callable):
+                transform = IndexMap.from_func(transform)
+            l.append(transform)
+        op_layout_change[operator_kind] = l
+
+    return _ffi_api.AlterOpImpl(op_impl_map, op_layout_change)  # type: ignore
 
 
 def _wrap_class_function_pass(pass_cls, pass_info):

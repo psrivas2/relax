@@ -27,7 +27,8 @@
 #include <tvm/ir/transform.h>
 #include <tvm/relax/dataflow_pattern.h>
 #include <tvm/relax/expr.h>
-
+#include <tvm/tir/function.h>
+#include <tvm/tir/index_map.h>
 namespace tvm {
 namespace relax {
 namespace transform {
@@ -37,6 +38,7 @@ using PassInfo = tvm::transform::PassInfo;
 using PassContext = tvm::transform::PassContext;
 using Function = tvm::relax::Function;
 using DataflowBlock = tvm::relax::DataflowBlock;
+using Sequential = tvm::transform::Sequential;
 
 /*!
  * \brief Create a function pass.
@@ -270,6 +272,20 @@ TVM_DLL Pass RemoveUnusedFunctions(Array<runtime::String> entry_functions);
 TVM_DLL Pass RunCodegen(Optional<Map<String, Map<String, ObjectRef>>> target_options,
                         Array<runtime::String> entry_functions);
 
+/*!
+ * \brief Returns a pass which replaces PrimFuncs which have matching kOperatorName attribute in \p
+ * op_impl_map, with replacement PrimFunc that could possibly have different layouts on i/o
+ * buffers. The layout transformations on i/o buffers is present in the \p op_layout_change. The
+ * pass inserts the layout transformations in the call sites of PrimFuncs being replaced to
+ * transform i/o buffers into expected layout.
+ *
+ * \param op_impl_map Map from from kOperatorName attr (e.g., relax.conv2d) to replacement PrimFunc
+ * \param op_layout_change Map from kOperatorName attr to layout transformations on each of the
+ * PrimFunc i/o buffers.
+ * \return The Pass.
+ */
+TVM_DLL Pass AlterOpImpl(const Map<String, tir::PrimFunc>& op_impl_map,
+                         const Map<String, Array<tir::IndexMap>>& op_layout_change);
 }  // namespace transform
 }  // namespace relax
 }  // namespace tvm

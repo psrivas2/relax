@@ -105,8 +105,6 @@ IRModule RemoveUnusedFunctions(IRModule mod_, Array<runtime::String> entry_funcs
   return mod_;
 }
 
-}  // namespace relax
-
 namespace transform {
 Pass RemoveUnusedFunctions(Array<runtime::String> entry_functions) {
   runtime::TypedPackedFunc<IRModule(IRModule, PassContext)> pass_func =
@@ -117,4 +115,5 @@ Pass RemoveUnusedFunctions(Array<runtime::String> entry_functions) {
 TVM_REGISTER_GLOBAL("relax.transform.RemoveUnusedFunctions").set_body_typed(RemoveUnusedFunctions);
 
 }  // namespace transform
+}  // namespace relax
 }  // namespace tvm
